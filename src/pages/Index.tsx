@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,29 @@ import { Todo } from "@/types/todo";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const STORAGE_KEY = "todos";
+
 const Index = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todos, setTodos] = useState<Todo[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.map((todo: any) => ({
+          ...todo,
+          createdAt: new Date(todo.createdAt)
+        }));
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [newTodo, setNewTodo] = useState("");
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  }, [todos]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
