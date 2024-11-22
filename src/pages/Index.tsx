@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import TodoItem from "@/components/TodoItem";
 import { Todo } from "@/types/todo";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -40,6 +41,9 @@ const Index = () => {
     toast.success("Todo deleted");
   };
 
+  const activeTodos = todos.filter((todo) => !todo.completed);
+  const completedTodos = todos.filter((todo) => todo.completed);
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
@@ -62,21 +66,46 @@ const Index = () => {
           </Button>
         </form>
 
-        <div className="space-y-4">
-          {todos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              onToggle={toggleTodo}
-              onDelete={deleteTodo}
-            />
-          ))}
-          {todos.length === 0 && (
-            <p className="text-center text-muted-foreground text-sm py-6">
-              No tasks yet. Add one above to get started.
-            </p>
-          )}
-        </div>
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="active">
+              Active ({activeTodos.length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed ({completedTodos.length})
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="active" className="space-y-4 mt-4">
+            {activeTodos.map((todo) => (
+              <TodoItem
+                key={todo.id}
+                todo={todo}
+                onToggle={toggleTodo}
+                onDelete={deleteTodo}
+              />
+            ))}
+            {activeTodos.length === 0 && (
+              <p className="text-center text-muted-foreground text-sm py-6">
+                No active tasks. Add one above to get started.
+              </p>
+            )}
+          </TabsContent>
+          <TabsContent value="completed" className="space-y-4 mt-4">
+            {completedTodos.map((todo) => (
+              <TodoItem
+                key={todo.id}
+                todo={todo}
+                onToggle={toggleTodo}
+                onDelete={deleteTodo}
+              />
+            ))}
+            {completedTodos.length === 0 && (
+              <p className="text-center text-muted-foreground text-sm py-6">
+                No completed tasks yet.
+              </p>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
