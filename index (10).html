@@ -1,0 +1,139 @@
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المهام</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+
+<div class="container mx-auto max-w-lg p-6 bg-white rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">إدارة المهام</h1>
+    <form id="todoForm" class="flex mb-6">
+        <input type="text" id="newTodo" placeholder="أضف مهمة جديدة..." required class="flex-grow p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="bg-blue-500 text-white p-3 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">إضافة</button>
+    </form>
+
+    <div class="tabs flex justify-around mb-6">
+        <div class="tab active cursor-pointer p-3 border border-gray-300 rounded-lg text-center flex-1 mx-1 bg-blue-500 text-white" onclick="showTab('active')">نشطة (<span id="activeCount">0</span>)</div>
+        <div class="tab cursor-pointer p-3 border border-gray-300 rounded-lg text-center flex-1 mx-1" onclick="showTab('completed')">منجزة (<span id="completedCount">0</span>)</div>
+    </div>
+
+    <div id="activeTodos" class="todo-list space-y-4"></div>
+    <div id="completedTodos" class="todo-list space-y-4 hidden"></div>
+</div>
+
+<script>
+    const STORAGE_KEY = "todos";
+    let todos = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const todoForm = document.getElementById("todoForm");
+    const newTodoInput = document.getElementById("newTodo");
+    const activeTodosContainer = document.getElementById("activeTodos");
+    const completedTodosContainer = document.getElementById("completedTodos");
+    const activeCount = document.getElementById("activeCount");
+    const completedCount = document.getElementById("completedCount");
+
+    todoForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const newTodoText = newTodoInput.value.trim();
+        if (newTodoText) {
+            const todo = {
+                id: crypto.randomUUID(),
+                text: newTodoText,
+                completed: false,
+                createdAt: new Date(),
+            };
+            todos.push(todo);
+            newTodoInput.value = '';
+            saveTodos();
+            renderTodos();
+        }
+    });
+
+    function saveTodos() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    }
+
+    function renderTodos() {
+        activeTodosContainer.innerHTML = '';
+        completedTodosContainer.innerHTML = '';
+
+        const activeTodos = todos.filter(todo => !todo.completed);
+        const completedTodos = todos.filter(todo => todo.completed);
+
+        activeTodos.forEach(todo => {
+            activeTodosContainer.innerHTML += `
+                <div class="todo-item flex justify-between p-3 border-b border-gray-300">
+                    <span>${todo.text}</span>
+                    <div>
+                        <button onclick="toggleTodo('${todo.id}')" class="text-green-500 hover:text-green-700 mx-1"><i class="fas fa-check"></i></button>
+                        <button onclick="deleteTodo('${todo.id}')" class="text-red-500 hover:text-red-700 mx-1"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+
+        completedTodos.forEach(todo => {
+            completedTodosContainer.innerHTML += `
+                <div class="todo-item flex justify-between p-3 border-b border-gray-300 line-through text-gray-500">
+                    <span>${todo.text}</span>
+                    <div>
+                        <button onclick="toggleTodo('${todo.id}')" class="text-green-500 hover:text-green-700 mx-1"><i class="fas fa-check"></i></button>
+                        <button onclick="deleteTodo('${todo.id}')" class="text-red-500 hover:text-red-700 mx-1"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+
+        activeCount.textContent = activeTodos.length;
+        completedCount.textContent = completedTodos.length;
+    }
+
+    function toggleTodo(id) {
+        todos = todos.map(todo => {
+            if (todo.id === id) {
+                return { ...todo, completed: !todo.completed };
+            }
+            return todo;
+        });
+        saveTodos();
+        renderTodos();
+    }
+
+    function deleteTodo(id) {
+        todos = todos.filter(todo => todo.id !== id);
+        saveTodos();
+        renderTodos();
+    }
+
+    function showTab(tab) {
+        if (tab === 'active') {
+            activeTodosContainer.classList.remove('hidden');
+            completedTodosContainer.classList.add('hidden');
+            document.querySelector('.tab.active').classList.remove('bg-blue-500', 'text-white');
+            document.querySelector('.tab.active').classList.add('bg-white', 'text-black');
+            document.querySelector('.tab:nth-child(1)').classList.add('bg-blue-500', 'text-white');
+            document.querySelector('.tab:nth-child(1)').classList.remove('bg-white', 'text-black');
+        } else {
+            activeTodosContainer.classList.add('hidden');
+            completedTodosContainer.classList.remove('hidden');
+            document.querySelector('.tab.active').classList.remove('bg-blue-500', 'text-white');
+            document.querySelector('.tab.active').classList.add('bg-white', 'text-black');
+            document.querySelector('.tab:nth-child(2)').classList.add('bg-blue-500', 'text-white');
+            document.querySelector('.tab:nth-child(2)').classList.remove('bg-white', 'text-black');
+        }
+    }
+
+    renderTodos(); // Render todos on initial load
+</script>
+
+</body>
+</html>
